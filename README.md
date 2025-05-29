@@ -14,3 +14,9 @@ This is for people who want to play their favorite games that don't support mous
 ## Website
 
 https://mymineblock.github.io/RainbowPuppy/
+
+
+## FAQ
+
+Why is interception being used when low level hooks do the same thing?
+Low level hooks do not block games that use raw input from acquiring hooked inputs
