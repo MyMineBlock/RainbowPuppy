@@ -18,5 +18,6 @@ https://mymineblock.github.io/RainbowPuppy/
 
 ## FAQ
 
-Why is interception being used when low level hooks do the same thing?
-Low level hooks do not block games that use raw input from acquiring hooked inputs
+**Q**: Why is interception being used when low level hooks do the same thing?
+---
+**A**: Low level hooks do not block games that use raw input from acquiring hooked inputs
