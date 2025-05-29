@@ -18,28 +18,36 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="interception.c">
+    <ClCompile Include="vendor\interception\interception.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\ViGEm\Client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="ViGEmClient.lib" />
-    <Library Include="interception.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ViGEmCommon.h">
+    <ClInclude Include="vendor\ViGEm\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ViGEmUtil.h">
+    <ClInclude Include="vendor\ViGEm\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ViGEmClient.h">
+    <ClInclude Include="vendor\json\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="json.hpp">
+    <ClInclude Include="vendor\interception\interception.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="interception.h">
+    <ClInclude Include="vendor\ViGEm\Client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ViGEm\km\BusShared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ViGEm\Internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\ViGEm\UniUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

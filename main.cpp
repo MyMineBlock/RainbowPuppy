@@ -1,16 +1,24 @@
+//Copyright(c) 2025 MyMineBlock
+//
+//Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and /or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions :
+//
+//The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+//
+//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 #include <Windows.h>
-#include "ViGEmClient.h"
+#include <ViGEm/Client.h>
 #include <iostream>
 #include <print>
 #include <bitset>
-#include <chrono>
+#include <chrono>	
 #include <fstream>
 #include <thread>
-#include "json.hpp"
-#include "interception.h"
+#include <json/json.hpp>
+#include <interception/interception.h>
 
 
-struct Binding 
+struct Binding
 {
 	std::uint16_t buttons{};
 	std::uint16_t dpad{ 8 };
@@ -37,7 +45,7 @@ void parse_json(std::unordered_map<int, Binding>& um)
 			um.emplace(
 				b["input"],
 				Binding{
-					.buttons{b["button"]} 
+					.buttons{b["button"]}
 				}
 			);
 		}
@@ -65,6 +73,7 @@ void parse_json(std::unordered_map<int, Binding>& um)
 			if (b["trigger"].contains("lt"))
 			{
 				um.emplace(
+					b["input"],
 					Binding{
 						.lt{b["trigger"]["lt"]}
 					}
@@ -73,6 +82,7 @@ void parse_json(std::unordered_map<int, Binding>& um)
 			if (b["trigger"].contains("rt"))
 			{
 				um.emplace(
+					b["input"],
 					Binding{
 						.rt{b["trigger"]["rt"]}
 					}

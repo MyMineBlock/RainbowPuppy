@@ -71,6 +71,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)/vendor</ExternalIncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)/vendor</ExternalIncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -110,7 +116,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SetupAPI.lib;ViGEmClient.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SetupAPI.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -129,23 +135,23 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SetupAPI.lib;ViGEmClient.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SetupAPI.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="interception.c" />
+    <ClCompile Include="vendor\interception\interception.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="vendor\ViGEm\Client.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="interception.lib" />
-    <Library Include="ViGEmClient.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="interception.h" />
-    <ClInclude Include="json.hpp" />
-    <ClInclude Include="ViGEmClient.h" />
-    <ClInclude Include="ViGEmCommon.h" />
-    <ClInclude Include="ViGEmUtil.h" />
+    <ClInclude Include="vendor\interception\interception.h" />
+    <ClInclude Include="vendor\json\json.hpp" />
+    <ClInclude Include="vendor\ViGEm\Client.h" />
+    <ClInclude Include="vendor\ViGEm\Internal.h" />
+    <ClInclude Include="vendor\ViGEm\km\BusShared.h" />
+    <ClInclude Include="vendor\ViGEm\Common.h" />
+    <ClInclude Include="vendor\ViGEm\UniUtil.h" />
+    <ClInclude Include="vendor\ViGEm\Util.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="bindings.json" />
