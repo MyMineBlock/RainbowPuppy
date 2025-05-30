@@ -20,12 +20,11 @@
 
 struct Binding
 {
-	std::uint16_t buttons{};
-	std::uint16_t dpad{ 8 };
-	std::uint8_t lx{ 128 };
-	std::uint8_t ly{ 128 };
-	std::uint8_t rt{};
-	std::uint8_t lt{};
+	USHORT buttons{0x80};
+	BYTE lx{ 128 };
+	BYTE ly{ 128 };
+	BYTE rt{};
+	BYTE lt{};
 };
 
 constexpr float sensitivity = .9f;
@@ -64,7 +63,7 @@ void parse_json(std::unordered_map<int, Binding>& um)
 			um.emplace(
 				b["input"],
 				Binding{
-					.dpad{b["dpad"]}
+					.buttons{static_cast<USHORT>(b["dpad"] << 8)}
 				}
 			);
 		}
@@ -110,8 +109,9 @@ int main()
 	}
 	PVIGEM_CLIENT client = vigem_alloc();
 
+
 	context = interception_create_context();
-	interception_set_filter(context, interception_is_mouse, INTERCEPTION_FILTER_MOUSE_ALL);
+	//interception_set_filter(context, interception_is_mouse, INTERCEPTION_FILTER_MOUSE_ALL);
 	interception_set_filter(context, interception_is_keyboard, INTERCEPTION_FILTER_KEY_ALL);
 	if (client == nullptr)
 	{
@@ -229,9 +229,9 @@ int main()
 			}
 		}
 
-		int current_dpad{DS4_BUTTON_DPAD_NONE};
-		int lx{}, ly{};
-		int lx_active{};
+		BYTE current_dpad{DS4_BUTTON_DPAD_NONE};
+		BYTE lx{}, ly{};
+		BYTE lx_active{};
 
 		for (int i{}; i != keys.size(); ++i)
 		{
@@ -240,15 +240,15 @@ int main()
 
 			const auto& b = um[i];
 
-			if (current_dpad == DS4_BUTTON_DPAD_NONE && b.dpad != 8)
+			if (current_dpad == DS4_BUTTON_DPAD_NONE && b.buttons >> 8 != 8)
 			{
-				current_dpad = b.dpad;
+				current_dpad = b.buttons >> 8;
 			}
 
 			if (b.lx != 128 || b.ly != 128)
 			{
-				lx += static_cast<int>(b.lx) - 128;
-				ly += static_cast<int>(b.ly) - 128;
+				lx += b.lx - 128;
+				ly += b.ly - 128;
 				++lx_active;
 			}
 		}
@@ -257,8 +257,8 @@ int main()
 
 		if (lx_active > 0)
 		{
-			report.bThumbLX = std::clamp(128 + lx, 0, 255);
-			report.bThumbLY = std::clamp(128 + ly, 0, 255);
+			report.bThumbLX = std::clamp<BYTE>(128 + lx, 0, 255);
+			report.bThumbLY = std::clamp<BYTE>(128 + ly, 0, 255);
 		}
 		else
 		{
@@ -266,11 +266,11 @@ int main()
 			report.bThumbLY = 128;
 		}
 
-		int finalLX{ 128 }, finalLY{ 128 };
+		BYTE finalLX{ 128 }, finalLY{ 128 };
 		if (lx_active > 0)
 		{
-			finalLX = std::clamp(128 + lx, 0, 255);
-			finalLY = std::clamp(128 + ly, 0, 255);
+			finalLX = std::clamp<BYTE>(128 + lx, 0, 255);
+			finalLY = std::clamp<BYTE>(128 + ly, 0, 255);
 		}
 
 		report.bThumbLX = finalLX;
@@ -296,8 +296,8 @@ int main()
 		const float stickRX = std::clamp(128.f + aimX, 0.f, 255.f);
 		const float stickRY = std::clamp(128.f + aimY, 0.f, 255.f);
 
-		report.bThumbRX = static_cast<std::uint8_t>(stickRX);
-		report.bThumbRY = static_cast<std::uint8_t>(stickRY);
+		report.bThumbRX = static_cast<BYTE>(stickRX);
+		report.bThumbRY = static_cast<BYTE>(stickRY);
 
 		mouse_dx = 0;
 		mouse_dy = 0;

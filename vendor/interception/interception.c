@@ -43,16 +43,17 @@ typedef struct
 InterceptionContext interception_create_context(void)
 {
     InterceptionDeviceArray device_array = 0;
-    char device_name[] = "\\\\.\\interception00";
+    char device_name[32] = "\\\\.\\interception00";
     DWORD bytes_returned;
     InterceptionDevice i;
 
     device_array = (InterceptionDeviceArray)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, INTERCEPTION_MAX_DEVICE * sizeof(*((InterceptionDeviceArray)0)));
-    if (!device_array) return 0;
+    if (!device_array)
+        return 0;
 
     for (i = 0; i < INTERCEPTION_MAX_DEVICE; ++i)
     {
-        HANDLE zero_padded_handle[2] = { 0 };
+        HANDLE zero_padded_handle[4] = { 0 };
 
         sprintf_s(&device_name[sizeof(device_name) - 3], 18, "%02d", i);
 

@@ -192,8 +192,11 @@ VOID FORCEINLINE DS4_SET_DPAD(
     _In_ DS4_DPAD_DIRECTIONS Dpad
 )
 {
+#pragma warning (push)
+#pragma warning (disable : 6001)
     Report->wButtons &= ~0xF;
     Report->wButtons |= (USHORT)Dpad;
+#pragma warning(pop)
 }
 
 VOID FORCEINLINE DS4_REPORT_INIT(
