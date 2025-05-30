@@ -11,11 +11,6 @@ https://github.com/oblitum/Interception
 
 This is for people who want to play their favorite games that don't support mouse and keyboard. This is not meant to be abused its use must comply with the game's terms of service!
 
-## Website
-
-https://mymineblock.github.io/RainbowPuppy/
-
-
 ## FAQ
 
 **Q**: Why is interception being used when low level hooks do the same thing?
