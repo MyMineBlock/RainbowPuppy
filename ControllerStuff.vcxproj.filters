@@ -54,7 +54,4 @@
   <ItemGroup>
     <None Include="bindings.json" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
 </Project>

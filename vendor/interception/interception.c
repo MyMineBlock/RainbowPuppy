@@ -42,7 +42,7 @@ typedef struct
 
 InterceptionContext interception_create_context(void)
 {
-    InterceptionDeviceArray device_array = 0;
+    InterceptionDeviceArray device_array = NULL;
     char device_name[32] = {0};
     DWORD bytes_returned;
     InterceptionDevice i;
@@ -56,6 +56,7 @@ InterceptionContext interception_create_context(void)
         HANDLE zero_padded_handle[4] = { 0 };
 
         sprintf_s(device_name, sizeof(device_name), "\\\\.\\interception%02d", i);
+        
 
         device_array[i].handle = CreateFileA(device_name, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
 
