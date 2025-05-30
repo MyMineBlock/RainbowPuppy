@@ -31,7 +31,7 @@ constexpr float sensitivity = .9f;
 constexpr float decay = 0.7f;
 
 
-void parse_json(std::unordered_map<int, Binding>& um)
+auto parse_json(std::unordered_map<int, Binding>& um) -> void
 {
 	using json = nlohmann::json;
 	std::ifstream ifs("bindings.json");
@@ -92,7 +92,7 @@ void parse_json(std::unordered_map<int, Binding>& um)
 }
 
 
-int main()
+auto main() -> int
 {
 	std::unordered_map<int, Binding> um;
 	InterceptionContext context;
@@ -303,7 +303,7 @@ int main()
 		mouse_dy = 0;
 		vigem_target_ds4_update(client, ds4, report);
 	}
-
+	cleanup:
 	vigem_target_remove(client, ds4);
 	vigem_target_free(ds4);
 	vigem_disconnect(client);
