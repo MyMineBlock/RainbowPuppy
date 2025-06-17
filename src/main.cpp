@@ -268,8 +268,8 @@ BOOL WINAPI WinMain(
 		report.bTriggerR = 0;
 		BYTE dpad = DS4_BUTTON_DPAD_NONE;
 
-		int lx = 0, ly = 0;
-		int lx_active = 0;
+		int lx{}, ly{};
+		int ls_active{};
 
 		for (int i = 0; i < keys.size(); ++i)
 		{
@@ -289,14 +289,14 @@ BOOL WINAPI WinMain(
 			{
 				lx += b.lx - 128;
 				ly += b.ly - 128;
-				++lx_active;
+				++ls_active;
 			}
 		}
 
 		DS4_SET_DPAD(&report, static_cast<DS4_DPAD_DIRECTIONS>(dpad));
 
 		BYTE final_lx{ 128 }, final_ly{ 128 };
-		if (lx_active > 0)
+		if (ls_active > 0)
 		{
 			final_lx = std::clamp<BYTE>(128 + lx, 0, 255);
 			final_ly = std::clamp<BYTE>(128 + ly, 0, 255);
