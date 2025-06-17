@@ -103,6 +103,10 @@ BOOL WINAPI WinMain(
 	_In_ int nShowCmd
 )
 {
+	UNREFERENCED_PARAMETER(hInstance);
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(nShowCmd);
 	std::unordered_map<int, Binding> um;
 	InterceptionContext context;
 	InterceptionStroke stroke;
@@ -205,43 +209,36 @@ BOOL WINAPI WinMain(
 					}
 					if (mouse->state)
 					{
-						switch (mouse->state)
-						{
-						case 1:
+						if (mouse->state & 1)
 							keys.set(1ull + 230);
-							break;
-						case 2:
+						if (mouse->state & 2)
 							keys.reset(1ull + 230);
-							break;
-						case 4:
+						if (mouse->state & 4)
 							keys.set(2ull + 230);
-							break;
-						case 8:
+						if (mouse->state & 8)
 							keys.reset(2ull + 230);
-							break;
-						case 16:
+						if (mouse->state & 16)
 							keys.set(3ull + 230);
-							break;
-						case 32:
+						if (mouse->state & 32)
 							keys.reset(3ull + 230);
-							break;
-						case 64:
+						if (mouse->state & 64)
 							keys.set(4ull + 230);
-							break;
-						case 128:
+						if (mouse->state & 128)
 							keys.reset(4ull + 230);
-							break;
-						case 256:
+						if (mouse->state & 256)
 							keys.set(5ull + 230);
-							break;
-						case 512:
+						if (mouse->state & 512)
 							keys.reset(5ull + 230);
-							break;
-							// I can't test sideways scroll so I don't know how many codes there are
-						default:
-							break;
-						}
 					}
+
+					// not using that because I don't know how it would work with other stuff
+					//for (int i{}; i != 6; ++i)
+					//{
+					//	if (mouse->state & (1 << (i * 2)))
+					//		keys.set(230 + 1ull + i);
+					//	if (mouse->state & (1 << (i * 2 + 1)))
+					//		keys.reset(230 + 1ull + i);
+					//}
 
 					if (!active)
 					{
@@ -264,20 +261,22 @@ BOOL WINAPI WinMain(
 		if (!active)
 			continue;
 		report.wButtons = 0;
+		report.bSpecial = 0;
 		report.bTriggerL = 0;
 		report.bTriggerR = 0;
-		BYTE dpad = DS4_BUTTON_DPAD_NONE;
+		BYTE dpad{ DS4_BUTTON_DPAD_NONE };
 
-		int lx{}, ly{};
-		int ls_active{};
+		BYTE lx{}, ly{};
+		bool ls_active{};
 
-		for (int i = 0; i < keys.size(); ++i)
+		for (int i{}; i != keys.size(); ++i)
 		{
 			if (!keys[i] || !um.contains(i)) continue;
 
 			const Binding& b = um[i];
 
 			report.wButtons |= b.buttons;
+			report.bSpecial |= b.buttons & 3;
 
 			if (b.dpad != DS4_BUTTON_DPAD_NONE)
 				dpad = b.dpad;
@@ -289,14 +288,14 @@ BOOL WINAPI WinMain(
 			{
 				lx += b.lx - 128;
 				ly += b.ly - 128;
-				++ls_active;
+				ls_active =  true;
 			}
 		}
 
 		DS4_SET_DPAD(&report, static_cast<DS4_DPAD_DIRECTIONS>(dpad));
 
 		BYTE final_lx{ 128 }, final_ly{ 128 };
-		if (ls_active > 0)
+		if (ls_active)
 		{
 			final_lx = std::clamp<BYTE>(128 + lx, 0, 255);
 			final_ly = std::clamp<BYTE>(128 + ly, 0, 255);
@@ -329,14 +328,14 @@ BOOL WINAPI WinMain(
 			return curved * 127.0f * sign;
 		};
 
-		const float stick_rx = std::clamp(128.f + aimX, 0.f, 255.f);
-		const float stick_ry = std::clamp(128.f + aimY, 0.f, 255.f);
+		/*const float stick_rx = std::clamp(128.f + aimX, 0.f, 255.f);
+		const float stick_ry = std::clamp(128.f + aimY, 0.f, 255.f);*/
 
 		const float curved_x = apply_curve(aimX, curve);
 		const float curved_y = apply_curve(aimY, curve);
 
-		report.bThumbRX = std::clamp(128 + static_cast<int>(curved_x), 0, 255);
-		report.bThumbRY = std::clamp(128 + static_cast<int>(curved_y), 0, 255);
+		report.bThumbRX = std::clamp<BYTE>(static_cast<BYTE>(std::round(128 + curved_x)), 0, 255);
+		report.bThumbRY = std::clamp<BYTE>(static_cast<BYTE>(std::round(128 + curved_y)), 0, 255);
 
 		mouse_dx = 0;
 		mouse_dy = 0;
