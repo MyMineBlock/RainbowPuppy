@@ -90,6 +90,18 @@ This is for people who want to play their favorite controller only games on mous
       "input": 47,
       "dpad": 1
     }
+    {
+      "input": 16,
+      "trigger": {
+        "lt": 255
+      }
+    },
+    {
+      "input": 33,
+      "trigger": {
+        "rt": 255
+      }
+    }
   ]
 }
 ```
