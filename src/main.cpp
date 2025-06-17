@@ -1,11 +1,4 @@
-//Copyright(c) 2025 MyMineBlock
-//
-//Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and /or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions :
-//
-//The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-//
-//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+#define NOMINMAX
 #include <Windows.h>
 #include <ViGEm/Client.h>
 #include <iostream>
@@ -20,15 +13,17 @@
 
 struct Binding
 {
-	USHORT buttons{0x80};
+	USHORT buttons{ 0 };
+	BYTE dpad{ DS4_BUTTON_DPAD_NONE };
 	BYTE lx{ 128 };
 	BYTE ly{ 128 };
 	BYTE rt{};
 	BYTE lt{};
 };
 
-constexpr float sensitivity = .9f;
-constexpr float decay = 0.7f;
+float sensitivity = .9f;
+float decay = 0.7f;
+float curve = 1.5f;
 
 
 auto parse_json(std::unordered_map<int, Binding>& um) -> void
@@ -36,6 +31,15 @@ auto parse_json(std::unordered_map<int, Binding>& um) -> void
 	using json = nlohmann::json;
 	std::ifstream ifs("bindings.json");
 	const auto data = json::parse(ifs);
+
+
+	if (data.contains("config"))
+	{
+		auto& c = data["config"];
+		sensitivity = c.value("sensitivity", sensitivity);
+		decay = c.value("decay", decay);
+		curve = c.value("curve", curve);
+	}
 
 	for (const auto& b : data["bindings"])
 	{
@@ -63,7 +67,7 @@ auto parse_json(std::unordered_map<int, Binding>& um) -> void
 			um.emplace(
 				b["input"],
 				Binding{
-					.buttons{static_cast<USHORT>(b["dpad"] << 8)}
+					.dpad = static_cast<BYTE>(b["dpad"])
 				}
 			);
 		}
@@ -92,11 +96,18 @@ auto parse_json(std::unordered_map<int, Binding>& um) -> void
 }
 
 
-auto main() -> int
+BOOL WINAPI WinMain(
+	_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPSTR lpCmdLine,
+	_In_ int nShowCmd
+)
 {
 	std::unordered_map<int, Binding> um;
 	InterceptionContext context;
 	InterceptionStroke stroke;
+	bool active{ true };
+	bool toggle{};
 	// this was shown in the example
 	//SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	try
@@ -111,7 +122,7 @@ auto main() -> int
 
 
 	context = interception_create_context();
-	//interception_set_filter(context, interception_is_mouse, INTERCEPTION_FILTER_MOUSE_ALL);
+	interception_set_filter(context, interception_is_mouse, INTERCEPTION_FILTER_MOUSE_ALL);
 	interception_set_filter(context, interception_is_keyboard, INTERCEPTION_FILTER_KEY_ALL);
 	if (client == nullptr)
 	{
@@ -167,7 +178,7 @@ auto main() -> int
 						keys.set(key->code + 128);
 						break;
 					case 3:
-						keys.set(key->code + 128);
+						keys.reset(key->code + 128);
 						break;
 						// keys that have multiple codes will not be supported for now lmao...
 					case 4:
@@ -176,6 +187,12 @@ auto main() -> int
 						break;
 					default:
 						std::unreachable();
+					}
+
+					if (!active)
+					{
+						interception_send(context, d, &stroke, 1);
+						continue;
 					}
 				}
 				else if (interception_is_mouse(d))
@@ -225,25 +242,48 @@ auto main() -> int
 							break;
 						}
 					}
+
+					if (!active)
+					{
+						interception_send(context, d, &stroke, 1);
+						continue;
+					}
 				}
 			}
 		}
 
-		BYTE current_dpad{DS4_BUTTON_DPAD_NONE};
-		BYTE lx{}, ly{};
-		BYTE lx_active{};
 
-		for (int i{}; i != keys.size(); ++i)
+		if (keys[211])
+			std::exit(-1);
+
+		bool curr_toggle_state = keys[210];
+		if (curr_toggle_state && !toggle)
+			active = !active;
+		toggle = curr_toggle_state;
+
+		if (!active)
+			continue;
+		report.wButtons = 0;
+		report.bTriggerL = 0;
+		report.bTriggerR = 0;
+		BYTE dpad = DS4_BUTTON_DPAD_NONE;
+
+		int lx = 0, ly = 0;
+		int lx_active = 0;
+
+		for (int i = 0; i < keys.size(); ++i)
 		{
-			if (!keys[i] || !um.contains(i))
-				continue;
+			if (!keys[i] || !um.contains(i)) continue;
 
-			const auto& b = um[i];
+			const Binding& b = um[i];
 
-			if (current_dpad == DS4_BUTTON_DPAD_NONE && b.buttons >> 8 != 8)
-			{
-				current_dpad = b.buttons >> 8;
-			}
+			report.wButtons |= b.buttons;
+
+			if (b.dpad != DS4_BUTTON_DPAD_NONE)
+				dpad = b.dpad;
+
+			report.bTriggerL = std::max(report.bTriggerL, b.lt);
+			report.bTriggerR = std::max(report.bTriggerR, b.rt);
 
 			if (b.lx != 128 || b.ly != 128)
 			{
@@ -253,31 +293,20 @@ auto main() -> int
 			}
 		}
 
-		DS4_SET_DPAD(&report, static_cast<DS4_DPAD_DIRECTIONS>(current_dpad));
+		DS4_SET_DPAD(&report, static_cast<DS4_DPAD_DIRECTIONS>(dpad));
 
+		BYTE final_lx{ 128 }, final_ly{ 128 };
 		if (lx_active > 0)
 		{
-			report.bThumbLX = std::clamp<BYTE>(128 + lx, 0, 255);
-			report.bThumbLY = std::clamp<BYTE>(128 + ly, 0, 255);
-		}
-		else
-		{
-			report.bThumbLX = 128;
-			report.bThumbLY = 128;
+			final_lx = std::clamp<BYTE>(128 + lx, 0, 255);
+			final_ly = std::clamp<BYTE>(128 + ly, 0, 255);
 		}
 
-		BYTE finalLX{ 128 }, finalLY{ 128 };
-		if (lx_active > 0)
-		{
-			finalLX = std::clamp<BYTE>(128 + lx, 0, 255);
-			finalLY = std::clamp<BYTE>(128 + ly, 0, 255);
-		}
-
-		report.bThumbLX = finalLX;
-		report.bThumbLY = finalLY;
+		report.bThumbLX = final_lx;
+		report.bThumbLY = final_ly;
 
 		aimX += mouse_dx * sensitivity;
-		aimY += mouse_dy * sensitivity;
+		aimY += mouse_dy * sensitivity * 1.5f;
 
 		constexpr auto update_interval = std::chrono::milliseconds(17);
 		const auto now = std::chrono::steady_clock::now();
@@ -293,17 +322,26 @@ auto main() -> int
 			last_update = now;
 		}
 
-		const float stickRX = std::clamp(128.f + aimX, 0.f, 255.f);
-		const float stickRY = std::clamp(128.f + aimY, 0.f, 255.f);
+		auto apply_curve = [](float value, float factor) -> float {
+			float sign = (value >= 0.0f) ? 1.0f : -1.0f;
+			float normalized = std::min(std::abs(value) / 127.0f, 1.0f);
+			float curved = std::pow(normalized, 1.0f / factor);
+			return curved * 127.0f * sign;
+		};
 
-		report.bThumbRX = static_cast<BYTE>(stickRX);
-		report.bThumbRY = static_cast<BYTE>(stickRY);
+		const float stick_rx = std::clamp(128.f + aimX, 0.f, 255.f);
+		const float stick_ry = std::clamp(128.f + aimY, 0.f, 255.f);
+
+		const float curved_x = apply_curve(aimX, curve);
+		const float curved_y = apply_curve(aimY, curve);
+
+		report.bThumbRX = std::clamp(128 + static_cast<int>(curved_x), 0, 255);
+		report.bThumbRY = std::clamp(128 + static_cast<int>(curved_y), 0, 255);
 
 		mouse_dx = 0;
 		mouse_dy = 0;
 		vigem_target_ds4_update(client, ds4, report);
 	}
-	cleanup:
 	vigem_target_remove(client, ds4);
 	vigem_target_free(ds4);
 	vigem_disconnect(client);

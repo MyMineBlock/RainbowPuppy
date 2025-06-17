@@ -1,4 +1,9 @@
 {
+  "config": {
+    "sensitivity": 0.5,
+    "decay": 0.7,
+    "curve": 1.8
+  },
   "bindings": [
     {
       "input": 17,
@@ -30,14 +35,10 @@
     },
     {
       "input": 56,
-      "button": 64
-    },
-    {
-      "input": 164,
       "button": 16
     },
     {
-      "input": 2,
+      "input": 235,
       "button": 128
     },
     {
@@ -53,15 +54,19 @@
       "button": 8192
     },
     {
-      "input": 514,
+      "input": 234,
+      "button": 64
+    },
+    {
+      "input": 232,
       "button": 256
     },
     {
-      "input": 513,
+      "input": 231,
       "button": 512
     },
     {
-      "input":  42,
+      "input": 42,
       "button": 2048
     },
     {
